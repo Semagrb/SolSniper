@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1755641396,
+    "name": "Lol",
+    "group": "@solana_trojanbot",
+    "enabled": true,
+    "filters": {
+      "Token Age (minutes)": {
+        "from": 1.0,
+        "to": 6.0
+      },
+      "First Buy (%)": {
+        "from": 1.0,
+        "to": 7.0
+      },
+      "Balance (SOL)": {
+        "from": 509.0,
+        "to": 800.0
+      },
+      "Transactions (count)": {
+        "from": 800.0,
+        "to": 12000.0
+      },
+      "Label": "Dev Has Enough Money"
+    },
+    "action": null,
+    "trojan": {
+      "amount": 1.0
+    },
+    "owner_id": 6667943544
+  }
+]

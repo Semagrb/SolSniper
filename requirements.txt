@@ -1,0 +1,7 @@
+python-telegram-bot[asyncio]>=20.0.0
+aiosqlite>=0.19.0
+asyncpg>=0.28.0
+python-dotenv>=1.0.0
+pydantic>=2.0.0
+telethon>=1.33.0
+PySimpleGUI>=4.60.0

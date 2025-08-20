@@ -1,0 +1,105 @@
+[
+  {
+    "id": 1,
+    "name": "Stt",
+    "group": "@SolanaNewPumpfun",
+    "enabled": true,
+    "filters": {
+      "Dev Allocations (%)": {
+        "from": 5.0,
+        "to": 10.0
+      },
+      "First Buy (count)": {
+        "from": 44.0,
+        "to": 45.0
+      },
+      "Balance (SOL)": {
+        "from": 80.0,
+        "to": 1000.0
+      },
+      "Mention": "Dev Has Enough Money"
+    }
+  },
+  {
+    "id": 2,
+    "name": "Solll",
+    "group": "@SolanaNewPumpfun",
+    "enabled": true,
+    "filters": {
+      "Token Age (minutes)": {
+        "from": 0.5,
+        "to": 1000.0
+      },
+      "First Buy (count)": {
+        "from": 7.88,
+        "to": 1000.0
+      },
+      "Balance (SOL)": {
+        "from": 0.0,
+        "to": 1000.0
+      },
+      "Transactions (count)": {
+        "from": 0.0,
+        "to": 1000.0
+      },
+      "Label": "Any"
+    }
+  },
+  {
+    "id": 3,
+    "name": "solli",
+    "group": "@SolanaNewPumpfun",
+    "enabled": true,
+    "filters": {
+      "First Buy (count)": {
+        "from": 1.0,
+        "to": 1.0
+      }
+    }
+  },
+  {
+    "id": 4,
+    "name": "Marv",
+    "group": "@SolanaNewPumpfun",
+    "enabled": true,
+    "filters": {
+      "Token Age (minutes)": {
+        "from": 0.0,
+        "to": 1.0
+      },
+      "First Buy (%)": {
+        "from": 1.0,
+        "to": 1.0
+      },
+      "Transactions (count)": {
+        "from": 5.0,
+        "to": 5.0
+      },
+      "Label": "Any"
+    }
+  },
+  {
+    "id": 1755554167,
+    "name": "Toto",
+    "group": "@SolanaNewPumpfun",
+    "enabled": true,
+    "filters": {
+      "First Buy (%)": {
+        "from": 1.0,
+        "to": 15.0
+      },
+      "Balance (SOL)": {
+        "from": 12.0,
+        "to": 100.0
+      },
+      "Transactions (count)": {
+        "from": 50.0,
+        "to": 100.0
+      },
+      "Label": "Dev Has Enough Money"
+    },
+    "action": null,
+    "trojan": null,
+    "owner_id": 7098750975
+  }
+]
