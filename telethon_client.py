@@ -971,11 +971,49 @@ async def start_telethon():
                         return
                     enabled = s.get('enabled', True)
                     detail = _fmt_strategy_human(idx, s)
+                    # One control per row to keep buttons large and always visible
                     rows = [
+                        [Button.inline('✏️ Edit', data=f'edit_strategy:{idx}')],
                         [Button.inline('✅ Enable' if not enabled else '⏸ Disable', data=f'toggle:{idx}')],
-                        [Button.inline('🗑 Delete', data=f'delete:{idx}'), Button.inline('⬅️ Back', data='strats')],
+                        [Button.inline('🗑 Delete', data=f'delete:{idx}')],
+                        [Button.inline('⬅️ Back', data='strats')],
                     ]
                     await event.edit(detail, buttons=rows)
+                    return
+                if data.startswith('edit_strategy:'):
+                    # Open builder prefilled with selected strategy for editing
+                    try:
+                        idx = int(data.split(':', 1)[1])
+                    except Exception:
+                        await event.answer('Invalid')
+                        return
+                    all_items = load_strategies()
+                    owned = [s for s in all_items if _belongs_to(s, event.sender_id)]
+                    if not (1 <= idx <= len(owned)):
+                        await event.answer('Out of range')
+                        return
+                    s = owned[idx - 1]
+                    # Prefill state with existing strategy data
+                    try:
+                        # Deep copy via JSON to avoid mutating original while editing
+                        data_copy = json.loads(json.dumps({
+                            'name': s.get('name'),
+                            'group': s.get('group'),
+                            'filters': s.get('filters') or {},
+                            'action': s.get('action') or {},
+                            'trojan': s.get('trojan') or {},
+                        }))
+                    except Exception:
+                        data_copy = {
+                            'name': s.get('name'),
+                            'group': s.get('group'),
+                            'filters': s.get('filters') or {},
+                            'action': s.get('action') or {},
+                            'trojan': s.get('trojan') or {},
+                        }
+                    st = {'mode': 'edit', 'step': 'builder', 'data': data_copy, 'edit_index': idx}
+                    CONV_STATE[chat_id] = st
+                    await event.edit(_builder_text(st), buttons=_builder_buttons(st))
                     return
                 if data.startswith('delete:'):
                     # Ask for confirmation before deleting
@@ -1036,8 +1074,16 @@ async def start_telethon():
                         await event.answer('Saved')
                     else:
                         await event.answer('Save failed')
-                    # Refresh view
-                    await event.edit(f"Toggled. Enabled = {s.get('enabled', True)}", buttons=[[Button.inline('⬅️ Back', data='strats')]])
+                    # Refresh strategy detail view with updated buttons
+                    enabled = s.get('enabled', True)
+                    detail = _fmt_strategy_human(idx, s)
+                    rows = [
+                        [Button.inline('✏️ Edit', data=f'edit_strategy:{idx}')],
+                        [Button.inline('✅ Enable' if not enabled else '⏸ Disable', data=f'toggle:{idx}')],
+                        [Button.inline('🗑 Delete', data=f'delete:{idx}')],
+                        [Button.inline('⬅️ Back', data='strats')],
+                    ]
+                    await event.edit(detail, buttons=rows)
                     return
                 if data == 'new':
                     # Always send a fresh builder message to avoid edit errors
@@ -1155,27 +1201,54 @@ async def start_telethon():
                             # Show builder again
                             await event.edit(_builder_text(st), buttons=_builder_buttons(st))
                             return
-                    name = d.get('name') or f"Strategy {int(time.time())}"
-                    # Build strategy record
-                    strategy = {
-                        'id': int(time.time()),
-                        'name': name,
-                        'group': d.get('group'),
-                        'enabled': True,
-                        'filters': d.get('filters', {}),
-                        'action': d.get('action'),
-                        'trojan': d.get('trojan'),
-                        'owner_id': int(event.sender_id),
-                    }
-                    items = load_strategies()
-                    items.append(strategy)
-                    ok = save_strategies(items)
-                    CONV_STATE.pop(chat_id, None)
-                    if ok:
-                        await event.edit('Saved ✅', buttons=[[Button.inline('⬅️ Back', data='dash')]])
+                    if st.get('mode') == 'edit':
+                        # Update existing strategy (by owned index)
+                        items = load_strategies()
+                        owned = [s for s in items if _belongs_to(s, event.sender_id)]
+                        try:
+                            eidx = int(st.get('edit_index') or 0)
+                        except Exception:
+                            eidx = 0
+                        if not (1 <= eidx <= len(owned)):
+                            await event.edit('Save failed ❌', buttons=[[Button.inline('⬅️ Back', data='dash')]])
+                            CONV_STATE.pop(chat_id, None)
+                            return
+                        target = owned[eidx - 1]
+                        # Preserve id, owner_id, enabled unless explicitly set
+                        target['name'] = d.get('name') or target.get('name') or f"Strategy {int(time.time())}"
+                        target['group'] = d.get('group')
+                        target['filters'] = d.get('filters', {})
+                        target['action'] = d.get('action')
+                        target['trojan'] = d.get('trojan')
+                        ok = save_strategies(items)
+                        CONV_STATE.pop(chat_id, None)
+                        if ok:
+                            await event.edit('Updated ✅', buttons=[[Button.inline('⬅️ Back', data='strats')]])
+                        else:
+                            await event.edit('Save failed ❌', buttons=[[Button.inline('⬅️ Back', data='dash')]])
+                        return
                     else:
-                        await event.edit('Save failed ❌', buttons=[[Button.inline('⬅️ Back', data='dash')]])
-                    return
+                        # Create new strategy
+                        name = d.get('name') or f"Strategy {int(time.time())}"
+                        strategy = {
+                            'id': int(time.time()),
+                            'name': name,
+                            'group': d.get('group'),
+                            'enabled': True,
+                            'filters': d.get('filters', {}),
+                            'action': d.get('action'),
+                            'trojan': d.get('trojan'),
+                            'owner_id': int(event.sender_id),
+                        }
+                        items = load_strategies()
+                        items.append(strategy)
+                        ok = save_strategies(items)
+                        CONV_STATE.pop(chat_id, None)
+                        if ok:
+                            await event.edit('Saved ✅', buttons=[[Button.inline('⬅️ Back', data='dash')]])
+                        else:
+                            await event.edit('Save failed ❌', buttons=[[Button.inline('⬅️ Back', data='dash')]])
+                        return
                 if data in ('cancel',):
                     CONV_STATE.pop(chat_id, None)
                     await event.edit('Canceled', buttons=[[Button.inline('⬅️ Back', data='dash')]])
@@ -1241,6 +1314,11 @@ async def start_telethon():
             st = CONV_STATE.get(chat_id)
             if not st or st.get('mode') not in ('create', 'edit', 'quick_action', 'limit', 'limit_ad_hoc'):
                 return
+            # Delete the user's input message so only the dashboard/prompt message remains
+            try:
+                await event.delete()
+            except Exception:
+                pass
             text = txt
             try:
                 # Decide branch by group or edit-type
